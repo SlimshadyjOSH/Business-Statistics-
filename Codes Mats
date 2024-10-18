@@ -1,0 +1,50 @@
+###### DROPSHIPPING #######
+
+# Define dropshipping criteria
+# For example, customers with high frequency and low average transaction value
+high_frequency_threshold = df_customer['frequency'].quantile(0.75)  # Top 25% in frequency
+low_avg_transaction_value_threshold = df_customer['avg_transaction_value'].quantile(0.25)  # Bottom 25% in avg transaction value
+
+# Filter customers based on criteria
+dropshipping_customers = df_customer[
+    (df_customer['frequency'] >= high_frequency_threshold) &
+    (df_customer['avg_transaction_value'] <= low_avg_transaction_value_threshold)
+]
+
+# Display dropshipping customers
+print(dropshipping_customers)
+
+# Optionally, analyze dropshipping customers further
+dropshipping_analysis = dropshipping_customers.agg({
+    'recency': 'mean',
+    'frequency': 'mean',
+    'monetary_value': 'mean',
+    'avg_transaction_value': 'mean'
+}).reset_index()
+
+print(dropshipping_analysis)
+
+# Check how many percentage of all the customers are dropshipping customers
+percentage_dropshipping_customers = len(dropshipping_customers) / len(df_customer) * 100
+print(f"Percentage of Dropshipping Customers: {percentage_dropshipping_customers:.2f}%")
+
+
+##### OPENING FEATURES DATA SET TAO YIN ########
+
+import pyarrow.parquet as pq
+
+# Open the Parquet file and read its metadata
+parquet_file = "C:/Users/matsbosma/Documents/Statistic Assignment/Tao Yin_Item_features.parquet"
+parquet_metadata = pq.ParquetFile(parquet_file)
+
+# Get and print column names
+column_names = parquet_metadata.schema.names
+print(column_names)
+
+# Count and print the number of columns
+num_columns = len(column_names)
+print(f"Number of columns: {num_columns}")
+
+# Get and print the number of rows
+num_rows = parquet_metadata.metadata.num_rows
+print(f"Number of rows: {num_rows}")
