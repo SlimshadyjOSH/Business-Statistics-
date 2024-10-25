@@ -1,0 +1,20 @@
+import pandas as pd
+
+# Define file path
+item_features_file_directory = '/content/Tao Yin_Item_features.parquet'
+
+# Read the parquet file
+df_if = pd.read_parquet(item_features_file_directory)
+
+# Remove duplicate values in the 'Articlenr' column
+df_if = df_if.drop_duplicates(subset=['Articlenr'])
+
+# Optionally, save the cleaned DataFrame back to a parquet file
+df_if.to_parquet('/content/Tao Yin_Item_features_cleaned.parquet')
+
+# Print the number of unique 'Articlenr' values to confirm
+num_unique_articlenr = df_if['Articlenr'].nunique()
+print(f"Number of unique 'Articlenr' values after removing duplicates: {num_unique_articlenr}")
+
+# Print the first 5 rows of the cleaned DataFrame
+print("First 5 rows of the cleaned DataFrame:\n", df_if.head(5))
