@@ -1,0 +1,64 @@
+import pandas as pd
+import os
+
+# Define file paths
+user_transactions_file_directory = '/content/TaoYin_User_Transactions_v2.parquet'
+item_features_file_directory = '/content/Tao Yin_Item_features_cleaned.parquet'
+
+# Define the directory where the new parquet files will be saved
+output_directory = '/content/statistiek_hoofdgroep_dfs/'
+
+# Create the directory if it doesn't exist
+os.makedirs(output_directory, exist_ok=True)
+
+# Read the parquet files
+df_ut = pd.read_parquet(user_transactions_file_directory)
+df_if = pd.read_parquet(item_features_file_directory)
+
+# Rename columns for consistency
+df_if.rename(columns={'Articlenr': 'articlenr'}, inplace=True)
+df_ut.rename(columns={'artikelnr': 'articlenr'}, inplace=True)
+
+# Merge the DataFrames on 'articlenr', including the additional columns
+merged_df = pd.merge(
+    df_ut,
+    df_if[['articlenr', 'ETIM', 'statistiek_hoofdgroep', 'statistiek_subgroep']],
+    on='articlenr',
+    how='inner'
+)
+
+# Check the number of common 'articlenr' values
+num_common_articlenr = merged_df.shape[0]
+print(f"Number of common 'articlenr' values: {num_common_articlenr}")
+
+# Optionally, check unique common 'articlenr' values
+num_unique_common_articlenr = merged_df['articlenr'].nunique()
+print(f"Number of unique common 'articlenr' values: {num_unique_common_articlenr}")
+
+# Print just the first 5 rows of the merged DataFrame
+print("First 5 rows of the merged DataFrame:\n", merged_df.head(5))
+
+# Create a dictionary to hold separate DataFrames based on 'statistiek_hoofdgroep'
+df_groups = {}
+
+# Get unique 'statistiek_hoofdgroep' values
+unique_hoofdgroepen = merged_df['statistiek_hoofdgroep'].unique()
+
+# Loop through each unique 'statistiek_hoofdgroep' and create a separate DataFrame
+for hoofdgroep in unique_hoofdgroepen:
+    # Filter the merged DataFrame for the current 'statistiek_hoofdgroep'
+    df_group = merged_df[merged_df['statistiek_hoofdgroep'] == hoofdgroep]
+
+    # Add the filtered DataFrame to the dictionary (optional, if you want to store it in memory)
+    df_groups[hoofdgroep] = df_group
+
+    # Define a file name for each parquet file based on the 'statistiek_hoofdgroep' value
+    file_name = f"{hoofdgroep.replace(' ', '_').replace('/', '_')}.parquet"
+    file_path = os.path.join(output_directory, file_name)
+
+    # Save the DataFrame as a parquet file
+    df_group.to_parquet(file_path, index=False)
+
+    print(f"Saved DataFrame for 'statistiek_hoofdgroep': {hoofdgroep} to {file_path}")
+
+# Now all separate DataFrames are saved as parquet files in the output directory
